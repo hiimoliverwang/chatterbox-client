@@ -26,13 +26,14 @@ var app = {
       url: this.server,
       type: 'GET',
       context: context,
-      // data: JSON.stringify(message),
+      data: {username:window.location.search.substr(10)},
       contentType: 'application/json',  
       success: function (data) {
           // console.log(data);
           // console.log(this);
+        this.clearMessages();
         for (var i = 0; i < data.results.length; i++) {
-          console.log(data.results[i]);
+          // console.log(data.results[i]);
           this.addMessage(data.results[i]);
         }
         
@@ -48,16 +49,23 @@ var app = {
     $('#chats').children().remove();
   },
   addMessage: function(message) {
-    message = $('<div class="chat">' + '<span class = "username">'+ message.username + '</span>' +
-               '<span class = "message"> : '+ JSON.stringify(message.text) + '</span>' + '</div>');
-    $('#chats').append(message);
+    var newMessage = $('<div class="chat"></div>');
+    var username = $('<span class = "username"></span>');
+    username.text(message.username);
+    var mes = $('<span class = "message"></span>');
+    mes.text(' : ' + JSON.stringify(message.text));
+
+    newMessage.append(username);
+    newMessage.append(mes);
+
+    $('#chats').append(newMessage);
   },
   addRoom: function(room) {
     room = $('<div>' + room + '</div>');
     $('#roomSelect').append(room);
   },
   addFriend: function() {
-
+  
   },
   handleSubmit: function() {
     var obj = {
@@ -82,7 +90,5 @@ $(document).ready(function() {
   $('#send').on('submit',function(){
     app.handleSubmit();
   });
-
-  
-
+  setInterval(app.fetch.bind(app), 5000);
 });
