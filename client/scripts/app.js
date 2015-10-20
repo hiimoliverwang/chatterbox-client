@@ -1,6 +1,6 @@
 // YOUR CODE HERE:
 var app = {
-  currentRoom : undefined,
+  currentRoom : 'all',
   init: function(){
     this.fetch();
   },
@@ -32,7 +32,7 @@ var app = {
       data: {username:window.location.search.substr(10)},
       contentType: 'application/json',  
       success: function (data) {
-          // console.log(data);
+        console.log(data);
           // console.log(this);
         this.clearMessages();
 
@@ -52,9 +52,9 @@ var app = {
     $('#chats').children().remove();
   },
   addMessage: function(message) {
-    if ( this.currentRoom !== undefined){
+    if ( this.currentRoom !== 'all'){
       message = _.filter(message, function(item){
-        return item.room === this.currentRoom;
+        return item.roomname === this.currentRoom;
       }.bind(this))
     }
     for (var i = 0; i < message.length; i++) {
@@ -71,17 +71,16 @@ var app = {
     }
   },
   addRoom: function(room) {
-    // room = $('<option>' + room + '</option>');
-    // $('#roomSelect').append(room);
+
   },
   addFriend: function() {
   
   },
-  handleSubmit: function() {
+  handleSubmit: function(message) {
     var obj = {
       username : window.location.search.substr(10),
-      text: $('#message').val(),
-      room:'lobby'
+      text: message,
+      roomname:this.currentRoom
     };
     this.addMessage(obj);
     this.send(obj);
@@ -92,7 +91,9 @@ var app = {
     // remove existing rooms
     $('#rooms').children().remove();
     // get unique rooms from all of the messages
-    var roomsList = _.uniq(_.pluck(results, 'room'));
+    var roomsList = _.uniq(_.pluck(results, 'roomname'));
+    roomsList[0]='all';
+    console.log(roomsList);
 
     // for each unique room, set this as an option for the select dropdown
     for ( var i = 0; i < roomsList.length; i ++ ) {
@@ -104,6 +105,8 @@ var app = {
       $('#rooms').append(room);
     }
 
+    $('#rooms').val(this.currentRoom);
+
 
   },
   enterRoom: function(room) {
@@ -113,7 +116,16 @@ var app = {
     this.fetch();
   },
   createRoom: function() {
-    // 
+    //read text box for new roomname
+    this.currentRoom = $('#newRoom').val();
+
+    // create message object with new room with message saying 'x user created a new room _______'
+        // set current room variable
+    // send this new object 
+    this.handleSubmit('User ' + window.location.search.substr(10) + ' created a new room ' + this.currentRoom );
+    this.enterRoom(this.currentRoom);
+
+      
   }
 
 };
@@ -127,12 +139,20 @@ $(document).ready(function() {
   $('#send').on('submit',function(event){
 
     event.preventDefault();
-    app.handleSubmit();
+    app.handleSubmit($('#message').val());
+    $('#message').val('');
   });
 
   $('#rooms').on('change', function(){
     app.enterRoom($(this));
   })
+
+  $('#createRoom').on('submit',function(event){
+
+    event.preventDefault();
+    app.createRoom();
+    $('#newRoom').val('');  
+  });
 
 
   setInterval(app.fetch.bind(app), 5000);
